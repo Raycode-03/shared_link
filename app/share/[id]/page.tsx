@@ -2,13 +2,13 @@ import { createClient } from '@/utils/supabase/server';
 import { Metadata } from 'next';
 
 // Dynamic OG tags 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
     const supabase = await createClient();
-
+    const { id } = await params 
     const { data } = await supabase
         .from('shared_links')    
         .select('title, description, image_url')
-        .eq('id', params.id)
+        .eq('id', id)
         .single();
 
     if (!data) {
@@ -25,15 +25,15 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
             title: data.title,
             description: data.description,
             images: [{ url: data.image_url }],
-            url: `https://yourdomain.com/share/${params.id}`,
+            url: `https://shared-link.vercel.app/share/${id}`,
         },
     };
 }
 
 export default async function SharePage({ params }: { params: Promise<{ id: string }> }) {
     const supabase = await createClient();
-    const { id: rawId } = await params 
-    const id = parseInt(rawId, 10)
+
+    const { id } = await params
     const { data: item } = await supabase
         .from('shared_links')   
         .select('*')
