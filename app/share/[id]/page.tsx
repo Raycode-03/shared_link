@@ -4,9 +4,9 @@ import { Metadata } from 'next';
 // Dynamic OG tags 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
     const supabase = await createClient();
-    const { id } = await params 
+    const { id } = await params
     const { data } = await supabase
-        .from('shared_links')    
+        .from('shared_links')
         .select('title, description, image_url')
         .eq('id', id)
         .single();
@@ -17,14 +17,17 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
             description: 'This link is no longer available.',
         };
     }
-
+    const ogImage = data.image_url.replace(
+        '/upload/',
+        '/upload/w_1200,h_630,c_fill/'
+    );
     return {
         title: data.title,
         description: data.description,
         openGraph: {
             title: data.title,
             description: data.description,
-            images: [{ url: data.image_url }],
+            images: [{ url: ogImage, width: 1200, height: 630 }],
             url: `https://shared-link.vercel.app/share/${id}`,
         },
     };
@@ -35,7 +38,7 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
 
     const { id } = await params
     const { data: item } = await supabase
-        .from('shared_links')   
+        .from('shared_links')
         .select('*')
         .eq('id', id)
         .single();
