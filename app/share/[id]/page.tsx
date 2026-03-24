@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
 import { Metadata } from 'next';
-
+import TrackView from './Trackview';
 // Dynamic OG tags 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
     const supabase = await createClient();
@@ -33,10 +33,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
 }
 
-export default async function SharePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function SharePage({ params,
+  searchParams,
+}: { params: Promise<{ id: string }> ;searchParams: Promise<{ src?: string }>;}) {
     const supabase = await createClient();
 
     const { id } = await params
+      const { src } = await searchParams; 
     const { data: item } = await supabase
         .from('shared_links')
         .select('*')
@@ -47,6 +50,7 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
     if (!item) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
+                
                 <h1 className="text-2xl font-bold mb-4">This link is no longer available</h1>
                 <p className="text-gray-500 mb-6">Download the app to see the latest offers.</p>
                 <a href="https://apps.apple.com" className="bg-black text-white px-6 py-3 rounded-full">
@@ -61,6 +65,7 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
     // --- NORMAL STATE ---
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
+            <TrackView id={id} src={src} />
             <img src={item.image_url} alt={item.title} className="w-72 rounded-xl mb-6" />
             <h1 className="text-2xl font-bold mb-2">{item.title}</h1>
             <p className="text-gray-500 mb-6">{item.description}</p>
